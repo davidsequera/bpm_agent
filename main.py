@@ -61,7 +61,7 @@ def show_file_head(filepath: str, n: int = 5) -> str:
 
 
 def run_long_subprocess():
-    """Runs dg_prediction.py in the deep_generator_2 conda environment with a 7-minute progress bar."""
+    """Runs dg_prediction.py in the deep_generator_2 conda environment with improved error handling."""
     placeholder = st.empty()
     progress_bar = st.progress(0)
     status_text = placeholder.text("🚀 Launching simulation in deep_generator_2...")
@@ -72,20 +72,24 @@ def run_long_subprocess():
     SCRIPT_PATH = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation\dg_prediction.py"
     PATH = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation"
 
-    # Build command:
-    #   1️⃣ Call activate.bat to load conda
-    #   2️⃣ Activate your env
-    #   3️⃣ Run Python script
-    cmd = f'cmd /c ""{ACTIVATE_BAT}" {ENV_NAME} && python "{SCRIPT_PATH}" {PATH}"'
+    # Build command with UTF-8 encoding
+    cmd = f'cmd /c "set PYTHONIOENCODING=utf-8 && "{ACTIVATE_BAT}" {ENV_NAME} && python "{SCRIPT_PATH}" {PATH}"'
 
     # Start subprocess
-    process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        text=True
-    )
+    try:
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            text=True,
+            encoding='utf-8',
+            errors='replace'
+        )
+    except Exception as e:
+        progress_bar.empty()
+        placeholder.empty()
+        return f"❌ Failed to start subprocess: {str(e)}"
 
     total_time = 60  # 1 minute
     update_interval = 1  # seconds
@@ -98,16 +102,46 @@ def run_long_subprocess():
         time.sleep(update_interval)
 
     # Collect output once it finishes
-    stdout, stderr = process.communicate()
+    try:
+        stdout, stderr = process.communicate(timeout=5)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        stdout, stderr = process.communicate()
+        progress_bar.empty()
+        placeholder.empty()
+        return "❌ Simulation timed out and was killed."
 
     progress_bar.progress(1.0)
-    status_text.text("✅ Simulation completed!")
-
-    if stderr.strip():
-        return f"⚠️ Simulation finished with errors:\n```\n{stderr}\n```"
+    
+    # Check return code
+    return_code = process.returncode
+    
+    if return_code != 0:
+        # Process failed
+        status_text.text(f"❌ Simulation failed with exit code {return_code}")
+        
+        error_msg = f"**Simulation Failed (Exit Code: {return_code})**\n\n"
+        
+        if stderr.strip():
+            error_msg += "**Error Output:**\n```\n{}\n```\n\n".format(stderr.strip())
+        
+        if stdout.strip():
+            error_msg += "**Standard Output:**\n```\n{}\n```".format(stdout.strip())
+        
+        return error_msg
     else:
-        return f"✅ Simulation finished successfully!\n\n**Output:**\n```\n{stdout}\n```"
-
+        # Process succeeded
+        status_text.text("✅ Simulation completed successfully!")
+        
+        success_msg = "✅ **Simulation finished successfully!**\n\n"
+        
+        if stdout.strip():
+            success_msg += "**Output:**\n```\n{}\n```\n\n".format(stdout.strip())
+        
+        if stderr.strip():
+            success_msg += "**Warnings/Info:**\n```\n{}\n```".format(stderr.strip())
+        
+        return success_msg
 
 
 # --- MAIN CHATBOT NODE ---
