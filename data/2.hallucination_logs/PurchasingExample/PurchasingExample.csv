@@ -1,0 +1,58 @@
+Unnamed: 0,caseid,task,user,start_timestamp,end_timestamp
+0,gen-Case000,Create Quotation comparison Map,Role 1,2011-06-20 09:35:16,2011-06-20 09:57:47
+1,gen-Case000,Send Request for Quotation to Supplier,Role 4,2011-06-20 11:37:21,2011-06-20 11:47:47
+2,gen-Case000,Analyze Quotation Comparison Map,Role 3,2011-06-20 11:47:47,2011-06-20 12:01:04
+3,gen-Case000,Create Request for Quotation,Role 3,2011-06-20 12:01:04,2011-06-20 12:21:34
+4,gen-Case000,Confirm Purchase Order,Role 3,2011-06-20 12:21:34,2011-06-20 12:37:37
+5,gen-Case000,Release Purchase Order,Role 3,2011-06-20 12:37:37,2011-06-20 12:56:04
+6,gen-Case000,Send Request for Quotation to Supplier,Role 3,2011-06-20 12:56:04,2011-06-20 13:19:31
+7,gen-Case000,Authorize Supplier's Invoice payment,Role 3,2011-06-20 13:19:31,2011-06-20 13:39:01
+8,gen-Case000,Analyze Quotation Comparison Map,Role 1,2011-06-20 13:39:01,2011-06-20 14:03:20
+9,gen-Case000,Release Supplier's Invoice,Role 1,2011-06-20 14:03:20,2011-06-20 14:28:37
+10,gen-Case000,Analyze Purchase Requisition,Role 3,2011-06-20 14:28:37,2011-06-20 14:50:37
+11,gen-Case000,Create Quotation comparison Map,Role 3,2011-06-20 14:50:37,2011-06-20 15:17:47
+12,gen-Case000,Send Invoice,Role 2,2011-06-20 15:17:47,2011-06-20 15:41:29
+13,gen-Case000,Analyze Purchase Requisition,Role 2,2011-06-20 15:41:29,2011-06-20 16:05:23
+14,gen-Case000,Send Invoice,Role 1,2011-06-20 16:05:23,2011-06-20 16:33:15
+15,gen-Case000,Choose best option,Role 3,2011-06-20 16:33:15,2011-06-20 16:55:53
+16,gen-Case000,Confirm Purchase Order,Role 1,2011-06-20 16:55:53,2011-06-20 17:20:36
+17,gen-Case000,Settle Conditions With Supplier,Role 3,2011-06-20 17:20:36,2011-06-20 17:46:07
+18,gen-Case000,Create Quotation comparison Map,Role 2,2011-06-20 17:46:07,2011-06-20 18:06:36
+19,gen-Case000,Release Purchase Order,Role 5,2011-06-20 18:06:36,2011-06-20 18:31:01
+20,gen-Case000,Release Purchase Order,Role 5,2011-06-20 18:31:01,2011-06-20 18:53:01
+21,gen-Case000,Create Quotation comparison Map,end,2011-06-20 18:53:01,2011-06-20 19:12:45
+22,gen-Case000,Confirm Purchase Order,Role 1,2011-06-20 19:12:45,2011-06-20 19:36:00
+24,gen-Case000,Release Supplier's Invoice,Role 3,2011-06-20 19:55:18,2011-06-20 20:15:05
+25,gen-Case000,Analyze Purchase Requisition,Role 2,2011-06-20 20:15:05,2011-06-20 20:36:31
+26,gen-Case000,Amend Purchase Requisition,Role 2,2011-06-20 20:36:31,2011-06-20 20:54:28
+0,gen-Case007,Settle Conditions With Supplier,Role 1,2011-06-20 09:35:16,2011-06-20 09:57:47
+1,gen-Case007,Pay Invoice,Role 1,2011-06-20 11:37:21,2011-06-20 11:47:47
+2,gen-Case007,Analyze Request for Quotation,Role 3,2011-06-20 11:47:47,2011-06-20 12:01:04
+3,gen-Case007,Analyze Purchase Requisition,end,2011-06-20 12:01:04,2011-06-20 12:21:34
+0,gen-Case014,Settle Dispute With Supplier,Role 1,2011-06-20 09:35:16,2011-06-20 09:57:47
+1,gen-Case014,Authorize Supplier's Invoice payment,Role 4,2011-06-20 11:37:21,2011-06-20 11:47:47
+2,gen-Case014,Create Purchase Order,Role 3,2011-06-20 11:47:47,2011-06-20 12:01:04
+3,gen-Case014,Create Request for Quotation,Role 1,2011-06-20 12:01:04,2011-06-20 12:21:34
+4,gen-Case014,Create Request for Quotation,Role 3,2011-06-20 12:21:34,2011-06-20 12:37:37
+5,gen-Case014,Analyze Request for Quotation,Role 3,2011-06-20 12:37:37,2011-06-20 12:56:04
+6,gen-Case014,Amend Purchase Requisition,Role 3,2011-06-20 12:56:04,2011-06-20 13:19:31
+7,gen-Case014,Analyze Purchase Requisition,Role 1,2011-06-20 13:19:31,2011-06-20 13:39:01
+8,gen-Case014,Analyze Quotation Comparison Map,Role 1,2011-06-20 13:39:01,2011-06-20 14:03:20
+9,gen-Case014,Create Quotation comparison Map,Role 3,2011-06-20 14:03:20,2011-06-20 14:28:37
+10,gen-Case014,Pay Invoice,Role 3,2011-06-20 14:28:37,2011-06-20 14:50:37
+11,gen-Case014,Approve Purchase Order for payment,Role 2,2011-06-20 14:50:37,2011-06-20 15:17:47
+12,gen-Case014,Choose best option,Role 2,2011-06-20 15:17:47,2011-06-20 15:41:29
+13,gen-Case014,Analyze Purchase Requisition,Role 1,2011-06-20 15:41:29,2011-06-20 16:05:23
+14,gen-Case014,Send Invoice,Role 3,2011-06-20 16:05:23,2011-06-20 16:33:15
+15,gen-Case014,Analyze Purchase Requisition,Role 1,2011-06-20 16:33:15,2011-06-20 16:55:53
+16,gen-Case014,Approve Purchase Order for payment,Role 3,2011-06-20 16:55:53,2011-06-20 17:20:36
+17,gen-Case014,Settle Dispute With Supplier,Role 2,2011-06-20 17:20:36,2011-06-20 17:46:07
+18,gen-Case014,Choose best option,Role 5,2011-06-20 17:46:07,2011-06-20 18:06:36
+19,gen-Case014,Release Purchase Order,Role 5,2011-06-20 18:06:36,2011-06-20 18:31:01
+20,gen-Case014,Settle Conditions With Supplier,Role 3,2011-06-20 18:31:01,2011-06-20 18:53:01
+21,gen-Case014,Settle Conditions With Supplier,Role 2,2011-06-20 18:53:01,2011-06-20 19:12:45
+22,gen-Case014,Create Quotation comparison Map,Role 5,2011-06-20 19:12:45,2011-06-20 19:36:00
+23,gen-Case014,Settle Conditions With Supplier,Role 5,2011-06-20 19:36:00,2011-06-20 19:55:18
+24,gen-Case014,Send Request for Quotation to Supplier,Role 5,2011-06-20 19:55:18,2011-06-20 20:15:05
+25,gen-Case014,Settle Conditions With Supplier,Role 3,2011-06-20 20:15:05,2011-06-20 20:36:31
+26,gen-Case014,Create Quotation comparison Map,Role 2,2011-06-20 20:36:31,2011-06-20 20:54:28

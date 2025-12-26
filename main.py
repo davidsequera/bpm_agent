@@ -1,206 +1,241 @@
 import streamlit as st
-from typing import TypedDict, List
-import os
-import pandas as pd
 import subprocess
-import time
-from langgraph.graph import StateGraph, END
+from typing import TypedDict, List
 from langchain_openai import ChatOpenAI
+from langgraph.graph import StateGraph, END
+import time
 
+# ---------------------------------------------------------------------
+# CONFIG
+# ---------------------------------------------------------------------
 
-# --- SETUP YOUR MODEL ---
 API_KEY = st.secrets["OPENAI_API_KEY"]
 
-# --- CONFIG ---
-BASE_PATH = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation\data\4.simulation_results"
+ACTIVATE_BAT = r"C:\ProgramData\miniconda3\Scripts\activate.bat"
+CONDA_ENV = "deep_generator_2"
+BPS_CLI = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation\cli.py"
+DEFAULT_ROOT = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation"
+    
+# ---------------------------------------------------------------------
+# STATE
+# ---------------------------------------------------------------------
 
-# --- DEFINE STATE SCHEMA ---
 class ChatState(TypedDict):
     history: List[dict]
     user_input: str
     response: str
 
+# ---------------------------------------------------------------------
+# LLM
+# ---------------------------------------------------------------------
 
-# --- LLM SETUP ---
-model = ChatOpenAI(model="gpt-4o-mini", openai_api_key=API_KEY)
+model = ChatOpenAI(
+    model="gpt-4o-mini",
+    openai_api_key=API_KEY,
+)
+
+# ---------------------------------------------------------------------
+# SUBPROCESS CORE
+# ---------------------------------------------------------------------
+
+def _base_cmd():
+    return (
+        f'cmd /c "'
+        f'set PYTHONIOENCODING=utf-8 && '
+        f'"{ACTIVATE_BAT}" {CONDA_ENV} && '
+    )
 
 
-# --- TOOL FUNCTIONS ---
-def list_files_and_folders(path: str = BASE_PATH) -> str:
+def run_subprocess(cmd: str, timeout: int = 600) -> str:
     try:
-        items = os.listdir(path)
-        result = "\n".join(items)
-        return f"📂 Contents of `{path}`:\n{result}"
-    except Exception as e:
-        return f"❌ Error: {e}"
-
-
-def search_file(keyword: str, path: str = BASE_PATH) -> str:
-    matches = []
-    for root, _, files in os.walk(path):
-        for f in files:
-            if keyword.lower() in f.lower():
-                matches.append(os.path.join(root, f))
-    if matches:
-        return "🔍 Found:\n" + "\n".join(matches)
-    else:
-        return f"No files found containing '{keyword}'."
-
-
-def show_file_head(filepath: str, n: int = 5) -> str:
-    try:
-        if filepath.lower().endswith(".csv"):
-            df = pd.read_csv(filepath)
-            return f"📄 First {n} rows of {os.path.basename(filepath)}:\n{df.head(n).to_markdown(index=False)}"
-        else:
-            with open(filepath, "r", encoding="utf-8") as f:
-                lines = "".join(f.readlines()[:n])
-            return f"📄 First {n} lines of {os.path.basename(filepath)}:\n```\n{lines}\n```"
-    except Exception as e:
-        return f"❌ Error reading file: {e}"
-
-
-def run_long_subprocess():
-    """Runs dg_prediction.py in the deep_generator_2 conda environment with improved error handling."""
-    placeholder = st.empty()
-    progress_bar = st.progress(0)
-    status_text = placeholder.text("🚀 Launching simulation in deep_generator_2...")
-
-    # === PATHS ===
-    ACTIVATE_BAT = r"C:\ProgramData\miniconda3\Scripts\activate.bat"
-    ENV_NAME = "deep_generator_2"
-    SCRIPT_PATH = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation\dg_prediction.py"
-    PATH = r"D:\Projects\Mini\AI\BPS\DeclarativeProcessSimulation"
-
-    # Build command with UTF-8 encoding
-    cmd = f'cmd /c "set PYTHONIOENCODING=utf-8 && "{ACTIVATE_BAT}" {ENV_NAME} && python "{SCRIPT_PATH}" {PATH}"'
-
-    # Start subprocess
-    try:
+        print(f"Running command: {cmd}")
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             shell=True,
             text=True,
-            encoding='utf-8',
-            errors='replace'
+            encoding="utf-8",
+            errors="replace",
         )
-    except Exception as e:
-        progress_bar.empty()
-        placeholder.empty()
-        return f"❌ Failed to start subprocess: {str(e)}"
-
-    total_time = 60  # 1 minute
-    update_interval = 1  # seconds
-
-    for elapsed in range(total_time):
-        if process.poll() is not None:  # process finished early
-            break
-        progress_bar.progress((elapsed + 1) / total_time)
-        status_text.text(f"⏳ Running simulation... {elapsed + 1}/{total_time} seconds")
-        time.sleep(update_interval)
-
-    # Collect output once it finishes
-    try:
-        stdout, stderr = process.communicate(timeout=5)
+        stdout, stderr = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         process.kill()
-        stdout, stderr = process.communicate()
-        progress_bar.empty()
-        placeholder.empty()
-        return "❌ Simulation timed out and was killed."
+        return "❌ Process timed out."
 
-    progress_bar.progress(1.0)
-    
-    # Check return code
-    return_code = process.returncode
-    
-    if return_code != 0:
-        # Process failed
-        status_text.text(f"❌ Simulation failed with exit code {return_code}")
-        
-        error_msg = f"**Simulation Failed (Exit Code: {return_code})**\n\n"
-        
-        if stderr.strip():
-            error_msg += "**Error Output:**\n```\n{}\n```\n\n".format(stderr.strip())
-        
-        if stdout.strip():
-            error_msg += "**Standard Output:**\n```\n{}\n```".format(stdout.strip())
-        
-        return error_msg
-    else:
-        # Process succeeded
-        status_text.text("✅ Simulation completed successfully!")
-        
-        success_msg = "✅ **Simulation finished successfully!**\n\n"
-        
-        if stdout.strip():
-            success_msg += "**Output:**\n```\n{}\n```\n\n".format(stdout.strip())
-        
-        if stderr.strip():
-            success_msg += "**Warnings/Info:**\n```\n{}\n```".format(stderr.strip())
-        
-        return success_msg
+    if process.returncode != 0:
+        return (
+            f"❌ Process failed\n\n"
+            f"**stderr:**\n```\n{stderr.strip()}\n```\n\n"
+            f"**stdout:**\n```\n{stdout.strip()}\n```"
+        )
+
+    return f"✅ Success\n\n```\n{stdout.strip()}\n```"
+
+# ---------------------------------------------------------------------
+# TOOLS
+# ---------------------------------------------------------------------
+
+def list_logs(root: str = DEFAULT_ROOT) -> str:
+    """List available logs that can be run"""
+    cmd = _base_cmd() + f'python {BPS_CLI} list-logs --root "{root}"' + '"'
+    return run_subprocess(cmd, timeout=300)
 
 
-# --- MAIN CHATBOT NODE ---
+def run_pipeline(
+    log: str,
+    root: str = DEFAULT_ROOT,
+    rep: int = 1,
+    variant: str = "Rules Based Random Choice",
+) -> str:
+    """Run the full BPS pipeline"""
+    cmd = (
+        _base_cmd()
+        + f'python {BPS_CLI} run '
+        f'--root "{root}" '
+        f'--log "{log}" '
+        f'--rep {rep} '
+        f'--variant "{variant}"'
+        + '"'
+    )
+    return run_subprocess(cmd)
+
+# ---------------------------------------------------------------------
+# TOOL SCHEMA FOR LLM
+# ---------------------------------------------------------------------
+
+tools_definitions = [
+    {
+        "type": "function",
+        "function": {
+            "name": "list_logs",
+            "description": "List the available event logs that can be used to run the BPS pipeline",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "root": {
+                        "type": "string",
+                        "description": "Project root path",
+                        "default": DEFAULT_ROOT,
+                    }
+                },
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "run_pipeline",
+            "description": "Run the full BPS pipeline for a given CSV log",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "log": {
+                        "type": "string",
+                        "description": "CSV filename of the log to run (log must include the .csv extension)",
+                    },
+                    "root": {
+                        "type": "string",
+                        "default": DEFAULT_ROOT,
+                    },
+                    "rep": {
+                        "type": "integer",
+                        "default": 1,
+                    },
+                    "variant": {
+                        "type": "string",
+                        "default": "Rules Based Random Choice",
+                    },
+                },
+                "required": ["log"],
+            },
+        },
+    },
+]
+
+TOOL_MAP = {
+    "list_logs": list_logs,
+    "run_pipeline": run_pipeline,
+}
+
+# ---------------------------------------------------------------------
+# CHATBOT NODE
+# ---------------------------------------------------------------------
+
 def chatbot_node(state: ChatState):
-    user_input = state["user_input"].lower()
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a BPS pipeline assistant.\n"
+                "You can:\n"
+                "- list available logs\n"
+                "- run the full pipeline for a given log\n\n"
+                "Use tools whenever the user asks to list logs or run the pipeline."
+            ),
+        }
+    ]
+
+    messages.extend(state["history"])
+    messages.append({"role": "user", "content": state["user_input"]})
+
+    llm_response = model.bind_tools(tools_definitions).invoke(messages)
+
     response_text = ""
 
-    # --- TOOL ROUTING ---
-    if "list files" in user_input or "show folders" in user_input:
-        response_text = list_files_and_folders()
+    if hasattr(llm_response, "tool_calls") and llm_response.tool_calls:
+        results = []
+        for tool_call in llm_response.tool_calls:
+            name = tool_call["name"]
+            args = tool_call["args"]
 
-    elif "search" in user_input and "file" in user_input:
-        parts = user_input.split()
-        keyword = parts[-1] if len(parts) > 2 else ""
-        response_text = search_file(keyword)
+            if name in TOOL_MAP:
+                with st.spinner(f"⚙️ Executing {name}..."):
+                    try:
+                        results.append(TOOL_MAP[name](**args))
+                    except Exception as e:
+                        results.append(f"❌ Tool error: {e}")
 
-    elif "head" in user_input or "preview" in user_input:
-        tokens = user_input.split()
-        filepath = next((t for t in tokens if ":" in t or "\\" in t or "/" in t), "")
-        response_text = show_file_head(filepath)
-
-    elif "run simulation" in user_input or "start process" in user_input:
-        response_text = run_long_subprocess()
-
+        response_text = "\n\n".join(results)
     else:
-        messages = [{"role": "system", "content": "You are a helpful assistant with file access tools."}]
-        messages.extend(state["history"])
-        messages.append({"role": "user", "content": state["user_input"]})
-        llm_response = model.invoke(messages)
         response_text = llm_response.content
 
-    # Update history
     new_history = state["history"] + [
         {"role": "user", "content": state["user_input"]},
         {"role": "assistant", "content": response_text},
     ]
+
     return {"response": response_text, "history": new_history}
 
+# ---------------------------------------------------------------------
+# GRAPH
+# ---------------------------------------------------------------------
 
-# --- BUILD LANGGRAPH ---
 graph = StateGraph(ChatState)
 graph.add_node("chatbot", chatbot_node)
 graph.set_entry_point("chatbot")
 graph.add_edge("chatbot", END)
 chat_graph = graph.compile()
 
+# ---------------------------------------------------------------------
+# STREAMLIT UI
+# ---------------------------------------------------------------------
 
-# --- STREAMLIT UI ---
-st.title("💬 LangGraph File Chatbot")
+st.set_page_config(page_title="BPS Chatbot", layout="centered")
+st.title("🤖 BPS Pipeline Chatbot")
+st.caption("Ask me to list logs or run the BPS pipeline")
 
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Render past messages
+# Render history
 for msg in st.session_state.history:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-user_input = st.chat_input("Say something...")
+user_input = st.chat_input(
+    "Try: 'list available logs' or 'run pipeline for PurchasingExample.csv'"
+)
 
 if user_input:
     state = {
@@ -208,11 +243,10 @@ if user_input:
         "history": st.session_state.history,
         "response": "",
     }
+
     result = chat_graph.invoke(state)
     st.session_state.history = result["history"]
 
-    with st.chat_message("user"):
-        st.markdown(user_input)
     with st.chat_message("assistant"):
         st.markdown(result["response"])
 
